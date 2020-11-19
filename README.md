@@ -63,6 +63,8 @@ RDD 以分区（partition）的形式分布在集群中的多个机器上，每�
 
 ## 纽约市出租车分析
 
+### 数据描述：
+
 数据来源：
 
 https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page
@@ -77,5 +79,5 @@ https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 
 
 
-![image-20201119155925103](README.assets/image-20201119155925103.png)
+<img src="README.assets/image-20201119155925103.png" alt="image-20201119155925103" style="zoom:50%;" />
 

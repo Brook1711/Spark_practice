@@ -73,3 +73,6 @@ https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 
 数据集在`./data`文件夹下
 
+数据集说明在`./data_dic`文件夹下
+
+![image-20201119155617431](C:\Users\brook\AppData\Roaming\Typora\typora-user-images\image-20201119155617431.png)

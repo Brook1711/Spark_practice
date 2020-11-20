@@ -138,3 +138,16 @@ FeatureJsonFormat对象中的implicit关键字是为了Spray库可以在JsValue�
 ### 纽约市出租车客运数据的预处理
 
 现在我们手头上有了GeoJSON和JodaTime库，该开始用Spark对纽约市出租车客运数据进行交互式分析了！先在HDFS上建立一个taxidata目录，并将载客数据复制到集群上：
+
+![image-20201120145732112](README.assets/image-20201120145732112.png)
+
+hadoop fs -mkdir taxidata_2020_01
+
+hadoop fs -put ./data/yellow_tripdata_2020-01.csv
+
+启动spark-shell :
+
+![image-20201120145917938](README.assets/image-20201120145917938.png)
+
+spark-shell --jars ./dependence/ch08-geotime-2.0.0-jar-with-dependencies.jar
+

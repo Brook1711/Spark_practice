@@ -120,3 +120,21 @@ Esri  API有一个助手类GeometryEngine，它提供了执行所有空间关系
 这里正好可以用Spray，它是一个用Scala构建Web服务的开源工具包。通过隐式调用spray-json的toJson方法，可以将任何Scala对象转换成相应的JsValue。也可以通过调用它的parseJson方法将任何JSON格式的字符串转换成一个中间类型，然后在中间类型上调用convertTo[T]将其转换成一个Scala类型T。Spray内置了对常用Scala原子类型、元组和集合类型的转换实现，同时也提供了一个格式化工具，该工具可以定义自定义类型（比如RichGeometry）与JSON之间相互转换的规则。
 
 首先为表示GeoJSON的特征将建立一个case类。根据规范，特征是一个JSON对象，它必须有一个geometry字段和一个properties字段。geometry代表GeoJSON的几何类型，properties则是一个JSON对象，可以包含任意个数和类型的键-值对。特征也可以有一个可选字段id，表示任何JSON标识符。我们的case类的Feature将为每个JSON字段定义相应的Scala字段，同时它还提供了在属性map中查找值的辅助方法：
+
+![image-20201119222149523](README.assets/image-20201119222149523.png)
+
+我们使用RichGeometry类实例来表示Feature中的geometry字段。我们通过Esri Geometry API的GeoJSON图形解析函数创建RichGeometry类实例。
+
+还需要为GeoJson FeatureCollection定义一个case类。为了使FeatureCollection类更易于使用，实现apply和length这两个抽象方法，就能让它扩展IndexedSeq[Feature]这个trait。这样就能直接在FeatureCollection实例上调用标准的Scala  Collections  API的方法，比如map、filter和sortBy等，而不用访问底层的Array[Feature]。
+
+![image-20201119222208530](README.assets/image-20201119222208530.png)
+
+在定义表示GeoJSON数据的case类之后，还需要定义领域对象（RichGeometry、Feature和FeatureCollection）与相应的JsValue实例之间相互转换的格式。为此要创建Scala的单例对象，这些对象扩展了RootJsonFormat[T]  trait，这个trait定义了抽象方法read(jsv: JsValue): T和write(t: T): JsValue。对于RichGeometry类，我们可以将大部分的解析和格式化逻辑委派给Esri  Geometry  API，也就是GeometryEngine类的geometryToGeoJson和geometryFromGeoJson方法。但对我们定义的case类，我们需要自己编写格式化逻辑。下面是Feature这个case类的格式化代码，其中包含了一些为处理可选字段id的特殊逻辑：
+
+![image-20201119222256602](README.assets/image-20201119222256602.png)
+
+FeatureJsonFormat对象中的implicit关键字是为了Spray库可以在JsValue实例上调用convertTo[Feature]时进行查找。可以在GitHub上找到GeoJSON库实现RootJsonFormat的其余源代码。
+
+### 纽约市出租车客运数据的预处理
+
+现在我们手头上有了GeoJSON和JodaTime库，该开始用Spark对纽约市出租车客运数据进行交互式分析了！先在HDFS上建立一个taxidata目录，并将载客数据复制到集群上：

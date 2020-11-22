@@ -125,4 +125,51 @@ quantile = taxi_trips_sample \
     .filter((taxi_trips_sample["pickup_latitude"] > 35) & (taxi_trips_sample["pickup_latitude"] < 45)) \
     .stat.approxQuantile(["pickup_longitude", "pickup_latitude"], [0.025,0.975], 0.01)
 """
+trip_data_group_by_PUL = extended_trips \
+    .groupBy("PULocationID").agg(
+        f.count(extended_trips["fare_amount"]).alias("trip_count"),
+        f.sum(extended_trips["passenger_count"]).alias("passenger_count"),
+        f.sum(extended_trips["fare_amount"]).alias("fare_amount"),
+        f.sum(extended_trips["tip_amount"]).alias("tip_amount"),
+        f.sum(extended_trips["total_amount"]).alias("total_amount")
+    )
+
+trip_data_group_by_PUL = trip_data_group_by_PUL.selectExpr("PULocationID as LocationID", "trip_count as trip_count", "passenger_count as passenger_count", "fare_amount as fare_amount", "tip_amount as tip_amount", "total_amount as total_amount")
+
+trip_data_group_by_DOL = extended_trips \
+    .groupBy("DOLocationID").agg(
+        f.count(extended_trips["fare_amount"]).alias("trip_count"),
+        f.sum(extended_trips["passenger_count"]).alias("passenger_count"),
+        f.sum(extended_trips["fare_amount"]).alias("fare_amount"),
+        f.sum(extended_trips["tip_amount"]).alias("tip_amount"),
+        f.sum(extended_trips["total_amount"]).alias("total_amount")
+    )
+trip_data_group_by_DOL = trip_data_group_by_DOL.selectExpr("DOLocationID as LocationID", "trip_count as trip_count", "passenger_count as passenger_count", "fare_amount as fare_amount", "tip_amount as tip_amount", "total_amount as total_amount")
+
+world = gpd.read_file('./map/taxi_zones/taxi_zones.shp')
+world_P = world.merge(trip_data_group_by_PUL.toPandas(), on = "LocationID", how = "outer")
+world_D = world.merge(trip_data_group_by_DOL.toPandas(), on = "LocationID", how = "outer")
+
+plt.figure(2)
+fig, ax = plt.subplots(1, 1)
+world_P.plot(column= 'passenger_count', ax=ax, legend=True)
+plt.savefig("./plot/map_passengaer_count_pick.png")
+
+plt.figure(3)
+fig, ax = plt.subplots(1, 1)
+world_D.plot(column= 'passenger_count', ax=ax, legend=True)
+plt.savefig("./plot/map_passengaer_count_drop.png")
+
+
+trip_data_group_by_PUL = trip_data_group_by_PUL.selectExpr("LocationID as LocationID", "trip_count as Ptrip_count", "passenger_count as Ppassenger_count", "fare_amount as Pfare_amount", "tip_amount as Ptip_amount", "total_amount as Ptotal_amount")
+trip_data_group_by_DOL = trip_data_group_by_DOL.selectExpr("LocationID as LocationID", "trip_count as Dtrip_count", "passenger_count as Dpassenger_count", "fare_amount as Pfare_amount", "tip_amount as Ptip_amount", "total_amount as Ptotal_amount")
+
+trip_data_group_by_LOC_PminusD = trip_data_group_by_PUL.join(trip_data_group_by_DOL, on = 'LocationID', how="outer") \
+    .groupBy("LocationID").agg(
+        f.count(extended_trips["fare_amount"]).alias("trip_count"),
+        f.sum(extended_trips["passenger_count"]).alias("passenger_count"),
+        f.sum(extended_trips["fare_amount"]).alias("fare_amount"),
+        f.sum(extended_trips["tip_amount"]).alias("tip_amount"),
+        f.sum(extended_trips["total_amount"]).alias("total_amount")
+    )
 print(f'Record count is: {trip_data.count()}')
